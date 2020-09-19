@@ -2,7 +2,7 @@ __license__ = "GNU General Public License v3"
 __author__ = 'Hwaipy'
 __email__ = 'hwaipy@gmail.com'
 
-from interactionfreepy import IFLoop
+from interactionfreepy import IFLoop, IFWorker
 import configparser
 from interactionfreemongodb.MongoDBContext import MongoDBContext
 
@@ -43,18 +43,21 @@ class ConfigItem:
 
 
 class App:
-    def __init__(self, config):
+    def __init__(self, config, serverName, timezone='utc'):
         self.config = Config(config)
+        self.serverName = serverName
+        self.timezone = timezone
 
     def start(self):
-        self.mongoDBContext = MongoDBContext(self.config)
+        self.mongoDBContext = MongoDBContext(self.config, timezone=self.timezone)
+        self.storage = self.mongoDBContext.IFData.storage
+        self.worker = IFWorker('tcp://{}:{}'.format(self.config['IFBroker'].Address.asString(), self.config['IFBroker'].Port.asInt()), self.serverName, self.storage)
 
     def join(self):
         IFLoop.join()
 
 
 if __name__ == '__main__':
-    app = App('../config.ini')
+    app = App('../config.ini', 'StorageApp', 'Asia/Shanghai')
     app.start()
-    # app.join()
-
+    app.join()
