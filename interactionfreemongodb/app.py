@@ -2,9 +2,9 @@ __license__ = "GNU General Public License v3"
 __author__ = 'Hwaipy'
 __email__ = 'hwaipy@gmail.com'
 
-from interactionfreepy.core import IFLoop
-from interactionfreepy.broker import IFBroker
+from interactionfreepy import IFLoop
 import configparser
+from interactionfreemongodb.MongoDBContext import MongoDBContext
 
 
 class Config:
@@ -47,13 +47,14 @@ class App:
         self.config = Config(config)
 
     def start(self):
-        print(self.config['MongoDB.IFConfig'].Username.asString())
+        self.mongoDBContext = MongoDBContext(self.config)
 
     def join(self):
         IFLoop.join()
 
 
 if __name__ == '__main__':
-    app = App('config.ini')
+    app = App('../config.ini')
     app.start()
-    app.join()
+    # app.join()
+

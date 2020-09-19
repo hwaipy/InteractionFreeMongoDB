@@ -5,8 +5,8 @@ __email__ = 'hwaipy@gmail.com'
 import time
 from datetime import datetime
 from bson.objectid import ObjectId
-import pytz
 from bson.codec_options import CodecOptions
+import pytz
 
 
 class Storage:
@@ -15,9 +15,9 @@ class Storage:
     FetchTime = 'FetchTime'
     Key = 'Key'
 
-    def __init__(self, db):
+    def __init__(self, db, timezone='utc'):
         self.db = db
-        self.tz = pytz.timezone('Asia/Shanghai')
+        self.tz = pytz.timezone(timezone)
 
     async def append(self, collection, data, fetchTime=None):
         recordTime = datetime.fromtimestamp(time.time(), tz=self.tz)
@@ -44,7 +44,9 @@ class Storage:
 
     async def first(self, collection, by=FetchTime, after=None, filter={}):
         dbFilter = self.__reformFilter(filter)
-        r = (await self.__collection(collection).find({by: {"$gt": datetime.fromisoformat(after)}}, dbFilter).sort(by, 1).to_list(length=1))
+        r = (await self.__collection(collection).find({by: {"$gt": datetime.fromisoformat(after)}}, dbFilter).sort(by,
+                                                                                                                   1).to_list(
+            length=1))
         if len(r) == 0: return None
         r = r[0]
         valid = True
@@ -87,7 +89,8 @@ class Storage:
         await self.__collection(collection).update_one({'_id': ObjectId(id)}, {'$set': value})
 
     def __collection(self, collection):
-        return self.db['Storage_{}'.format(collection)].with_options(codec_options=CodecOptions(tz_aware=True, tzinfo=self.tz))
+        return self.db['Storage_{}'.format(collection)].with_options(
+            codec_options=CodecOptions(tz_aware=True, tzinfo=self.tz))
 
     def __reformResult(self, result):
         if result.__contains__(Storage.RecordTime):
@@ -116,19 +119,18 @@ class Storage:
         else:
             raise RuntimeError('FetchTime not recognized.')
 
-
-if __name__ == '__main__':
-    from motor import MotorClient
-
-
-    async def testFunc():
-        motor = MotorClient('mongodb://IFDataAdmin:fwaejio8798fwjoiewf@172.16.60.199:27019/IFData')
-        storage = Storage(motor.IFData)
-        get = await storage.append('DBTest', '2020-07-25T15:37:45.318000+08:00', 'FetchTime', filter={'FetchTime': 1})
-
-        print(get)
-
-
-    import asyncio
-
-    asyncio.get_event_loop().run_until_complete(testFunc())
+# if __name__ == '__main__':
+#     from motor import MotorClient
+#
+#
+#     async def testFunc():
+#         motor = MotorClient('mongodb://IFDataAdmin:fwaejio8798fwjoiewf@172.16.60.199:27019/IFData')
+#         storage = Storage(motor.IFData)
+#         get = await storage.append('DBTest', '2020-07-25T15:37:45.318000+08:00', 'FetchTime', filter={'FetchTime': 1})
+#
+#         print(get)
+#
+#
+#     import asyncio
+#
+#     asyncio.get_event_loop().run_until_complete(testFunc())

@@ -19,6 +19,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'interactionfreepy',
+        'motor',
+        'pytz',
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
