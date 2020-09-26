@@ -18,8 +18,10 @@ class Storage:
     def __init__(self, db, timezone='utc'):
         self.db = db
         self.tz = pytz.timezone(timezone)
+        self.existCollections = None
 
     async def append(self, collection, data, fetchTime=None):
+        await self.__beforeModify(collection)
         recordTime = datetime.fromtimestamp(time.time(), tz=self.tz)
         s = {
             Storage.RecordTime: recordTime,
@@ -44,9 +46,7 @@ class Storage:
 
     async def first(self, collection, by=FetchTime, after=None, filter={}):
         dbFilter = self.__reformFilter(filter)
-        r = (await self.__collection(collection).find({by: {"$gt": datetime.fromisoformat(after)}}, dbFilter).sort(by,
-                                                                                                                   1).to_list(
-            length=1))
+        r = (await self.__collection(collection).find({by: {"$gt": datetime.fromisoformat(after)}}, dbFilter).sort(by, 1).to_list(length=1))
         if len(r) == 0: return None
         r = r[0]
         valid = True
@@ -60,9 +60,7 @@ class Storage:
             begin = datetime.fromisoformat(begin)
             end = datetime.fromisoformat(end)
         dbFilter = self.__reformFilter(filter)
-        r = await self.__collection(collection).find(
-            {"$and": [{by: {"$gt": begin}}, {by: {"$lt": end}}]}
-            , dbFilter).to_list(length=limit)
+        r = await self.__collection(collection).find({"$and": [{by: {"$gt": begin}}, {by: {"$lt": end}}]}, dbFilter).to_list(length=limit)
         r.sort(key=lambda e: e[Storage.FetchTime])
         return [self.__reformResult(item) for item in r]
 
@@ -79,6 +77,7 @@ class Storage:
             return None
 
     async def delete(self, collection, value, key='_id'):
+        await self.__beforeModify(collection)
         if key == '_id':
             value = ObjectId(value)
         if key == 'FetchTime':
@@ -86,6 +85,7 @@ class Storage:
         await self.__collection(collection).delete_one({key: value})
 
     async def update(self, collection, id, value):
+        await self.__beforeModify(collection)
         await self.__collection(collection).update_one({'_id': ObjectId(id)}, {'$set': value})
 
     def __collection(self, collection):
@@ -118,6 +118,17 @@ class Storage:
             return datetime.fromisoformat(fetchTime)
         else:
             raise RuntimeError('FetchTime not recognized.')
+
+    async def __senseExistCollections(self):
+        self.existCollections = [c[8:] for c in await self.db.list_collection_names() if c.startswith('Storage_')]
+
+    async def __beforeModify(self, collection):
+        if self.existCollections == None:
+            await self.__senseExistCollections()
+        if not self.existCollections.__contains__(collection):
+            await self.__collection(collection).create_index('FetchTime')
+            await self.__collection(collection).create_index('RecordTime')
+            self.existCollections.append(collection)
 
 # if __name__ == '__main__':
 #     from motor import MotorClient

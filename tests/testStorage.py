@@ -49,7 +49,20 @@ class StorageTest(unittest.TestCase):
             self.assertTrue(await StorageTest.storage.get(StorageTest.collection, '2020-07-01T00:00:50+08:00', 'FetchTime', {'FetchTime': 1, '_id': 0, 'Data.Content': 1}) == None)
             id = ((await StorageTest.storage.get(StorageTest.collection, '2020-07-01T00:00:00+08:00', 'FetchTime', {'FetchTime': 1, '_id': 1}))['_id'])
             await StorageTest.storage.update(StorageTest.collection, id, {'NewKey': 'NewValue'})
-            IOLoop.current().run_sync(test)
+
+        IOLoop.current().run_sync(test)
+
+    def testIndexBuilding(self):
+        async def test():
+            expectedIndexes = ['RecordTime', 'FetchTime']
+            ii = await StorageTest.storage.db.Storage_TestCollection.index_information()
+            for k in ii:
+                index = ii[k]['key'][0][0]
+                if expectedIndexes.__contains__(index):
+                    expectedIndexes.remove(index)
+            self.assertTrue(len(expectedIndexes) == 0)
+
+        IOLoop.current().run_sync(test)
 
     def tearDown(self):
         pass
