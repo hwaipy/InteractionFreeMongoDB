@@ -33,27 +33,22 @@ class Storage:
             s[Storage.FetchTime] = recordTime
         await self.__collection(collection).insert_one(s)
 
-    async def latest(self, collection, by=FetchTime, after=None, filter={}):
+    async def latest(self, collection, by=FetchTime, after=None, filter={}, length=1):
         dbFilter = self.__reformFilter(filter)
-        r = (await self.__collection(collection).find({}, dbFilter).sort(by, -1).to_list(length=1))
+        r = (await self.__collection(collection).find({}, dbFilter).sort(by, -1).to_list(length))
+        r = [self.__reformResult(item) for item in r if ((not after) or (datetime.fromisoformat(after) < item[Storage.FetchTime]))]
         if len(r) == 0: return None
-        r = r[0]
-        valid = True
-        if after:
-            latestEntryTime = r[Storage.FetchTime]
-            valid = datetime.fromisoformat(after) < latestEntryTime
-        return self.__reformResult(r) if valid else None
+        if len(r) == 1: return r[0]
+        return r
 
-    async def first(self, collection, by=FetchTime, after=None, filter={}):
+    async def first(self, collection, by=FetchTime, after=None, filter={}, length=1):
         dbFilter = self.__reformFilter(filter)
-        r = (await self.__collection(collection).find({by: {"$gt": datetime.fromisoformat(after)}}, dbFilter).sort(by, 1).to_list(length=1))
+        condition = {by: {"$gt": datetime.fromisoformat(after)}} if after else {}
+        r = (await self.__collection(collection).find(condition, dbFilter).sort(by, 1).to_list(length))
+        r = [self.__reformResult(item) for item in r if ((not after) or (datetime.fromisoformat(after) < item[Storage.FetchTime]))]
         if len(r) == 0: return None
-        r = r[0]
-        valid = True
-        if after:
-            latestEntryTime = r[Storage.FetchTime]
-            valid = datetime.fromisoformat(after) < latestEntryTime
-        return self.__reformResult(r) if valid else None
+        if len(r) == 1: return r[0]
+        return r
 
     async def range(self, collection, begin, end, by=FetchTime, filter={}, limit=1000):
         if by == Storage.RecordTime or by == Storage.FetchTime:

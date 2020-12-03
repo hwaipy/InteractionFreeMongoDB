@@ -49,7 +49,14 @@ class StorageTest(unittest.TestCase):
             self.assertTrue(await StorageTest.storage.get(StorageTest.collection, '2020-07-01T00:00:50+08:00', 'FetchTime', {'FetchTime': 1, '_id': 0, 'Data.Content': 1}) == None)
             id = ((await StorageTest.storage.get(StorageTest.collection, '2020-07-01T00:00:00+08:00', 'FetchTime', {'FetchTime': 1, '_id': 1}))['_id'])
             await StorageTest.storage.update(StorageTest.collection, id, {'NewKey': 'NewValue'})
-
+            self.assertTrue(await StorageTest.storage.latest(StorageTest.collection, 'FetchTime', '2020-07-01T00:01:35+08:00', {'FetchTime': 1, '_id': 0}) == {'FetchTime': '2020-07-01T00:01:39+08:00'})
+            self.assertTrue(await StorageTest.storage.first(StorageTest.collection, 'FetchTime', filter={'FetchTime': 1, '_id': 0, 'Data.Content': 1}) == {'FetchTime': '2020-07-01T00:00:00+08:00', 'Data': {'Content': 0}})
+            self.assertTrue(await StorageTest.storage.latest(StorageTest.collection, 'FetchTime', filter={'FetchTime': 1, '_id': 0, 'Data.Content': 1}) == {'FetchTime': '2020-07-01T00:01:39+08:00', 'Data': {'Content': 99}})
+            latestBatch = await StorageTest.storage.latest(StorageTest.collection, 'FetchTime', '2020-07-01T00:01:35+08:00', {'FetchTime': 1, '_id': 0}, 10)
+            self.assertTrue(latestBatch == [{'FetchTime': '2020-07-01T00:01:39+08:00'}, {'FetchTime': '2020-07-01T00:01:38+08:00'}, {'FetchTime': '2020-07-01T00:01:37+08:00'}, {'FetchTime': '2020-07-01T00:01:36+08:00'}])
+            firstBatch = await StorageTest.storage.first(StorageTest.collection, 'FetchTime', '2020-07-01T00:00:35+08:00', {'FetchTime': 1, '_id': 0}, 5)
+            self.assertTrue(firstBatch == [{'FetchTime': '2020-07-01T00:00:36+08:00'}, {'FetchTime': '2020-07-01T00:00:37+08:00'}, {'FetchTime': '2020-07-01T00:00:38+08:00'}, {'FetchTime': '2020-07-01T00:00:39+08:00'}, {'FetchTime': '2020-07-01T00:00:40+08:00'}])
+            
         IOLoop.current().run_sync(test)
 
     def testIndexBuilding(self):
