@@ -125,18 +125,22 @@ class Storage:
             await self.__collection(collection).create_index('RecordTime')
             self.existCollections.append(collection)
 
-# if __name__ == '__main__':
-#     from motor import MotorClient
-#
-#
-#     async def testFunc():
-#         motor = MotorClient('mongodb://IFDataAdmin:fwaejio8798fwjoiewf@172.16.60.199:27019/IFData')
-#         storage = Storage(motor.IFData)
-#         get = await storage.append('DBTest', '2020-07-25T15:37:45.318000+08:00', 'FetchTime', filter={'FetchTime': 1})
-#
-#         print(get)
-#
-#
-#     import asyncio
-#
-#     asyncio.get_event_loop().run_until_complete(testFunc())
+
+if __name__ == '__main__':
+    from motor import MotorClient
+
+    async def testFunc():
+        motor = MotorClient('mongodb://IFDataAdmin:fwaejio8798fwjoiewf@172.16.60.200:27017/IFData')
+        # motor = MotorClient('mongodb://IFDataAdmin:fwaejio8798fwjoiewf@interactionfree.cn:27017/IFData')
+        # motor = MotorClient('mongodb://user55641214:Freespace2021@dds-uf6xdx8f6fml0flm-pub.mongodb.rds.aliyuncs.com:3717/admin')
+        storage = Storage(motor.IFData)
+        # get = await storage.append('DBTest', {'a': 'b'}, '2020-07-25T15:37:45.318000+08:00')
+        print(('get'))
+        get = await storage.append('SecretDebug', {'a':'b'})
+        print((get))
+
+
+    import asyncio
+    while True:
+        time.sleep(1)
+        asyncio.get_event_loop().run_until_complete(testFunc())

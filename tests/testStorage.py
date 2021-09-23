@@ -3,7 +3,6 @@ __author__ = 'Hwaipy'
 import unittest
 import os
 
-os.chdir('..')
 from tornado.ioloop import IOLoop
 from interactionfreemongodb.MongoDBContext import MongoDBContext
 from datetime import datetime, timedelta

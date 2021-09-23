@@ -17,7 +17,6 @@ class IFDataContext:
         self.db = db
         self.storage = Storage(db, timezone)
 
-
 class MongoDBContext:
     def __init__(self, config, isTest=False, timezone='utc'):
         self.__IFConfigClient = MotorClient('mongodb://{username}:{password}@{address}:{port}/{database}'.format(
@@ -25,7 +24,7 @@ class MongoDBContext:
             password=config['MongoDB.IFConfig'].Password.asString(),
             address=config['MongoDB'].Address.asString(),
             port=config['MongoDB'].Port.asInt(),
-            database='IFConfig'
+            database=config['MongoDB.IFConfig'].DB.asString(),
         ))
         self.__IFConfig = self.__IFConfigClient.get_database('IFConfig')
         if isTest:
@@ -35,10 +34,18 @@ class MongoDBContext:
             password=config['MongoDB.IFData'].Password.asString(),
             address=config['MongoDB'].Address.asString(),
             port=config['MongoDB'].Port.asInt(),
-            database='IFData'
+            database=config['MongoDB.IFData'].DB.asString(),
         ))
         self.__IFData = self.__IFDataClient.get_database('IFData')
         if isTest:
             self.__IFData = self.__IFDataClient.get_database('IFDataTest')
         self.IFConfig = IFConfigContext(self.__IFConfig, timezone)
         self.IFData = IFDataContext(self.__IFData, timezone)
+
+        # print('mongodb://{username}:{password}@{address}:{port}/{database}'.format(
+        #     username=config['MongoDB.IFConfig'].Username.asString(),
+        #     password=config['MongoDB.IFConfig'].Password.asString(),
+        #     address=config['MongoDB'].Address.asString(),
+        #     port=config['MongoDB'].Port.asInt(),
+        #     database=config['MongoDB'].DB
+        # ))

@@ -58,6 +58,6 @@ class App:
 
 
 if __name__ == '__main__':
-    app = App('../config.ini', 'StorageApp', 'Asia/Shanghai')
+    app = App('config.ini', 'StorageApp', 'Asia/Shanghai')
     app.start()
     app.join()
