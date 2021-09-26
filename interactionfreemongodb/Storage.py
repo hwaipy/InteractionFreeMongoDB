@@ -131,8 +131,6 @@ if __name__ == '__main__':
 
     async def testFunc():
         motor = MotorClient('mongodb://IFDataAdmin:fwaejio8798fwjoiewf@172.16.60.200:27017/IFData')
-        # motor = MotorClient('mongodb://IFDataAdmin:fwaejio8798fwjoiewf@interactionfree.cn:27017/IFData')
-        # motor = MotorClient('mongodb://user55641214:Freespace2021@dds-uf6xdx8f6fml0flm-pub.mongodb.rds.aliyuncs.com:3717/admin')
         storage = Storage(motor.IFData)
         # get = await storage.append('DBTest', {'a': 'b'}, '2020-07-25T15:37:45.318000+08:00')
         print(('get'))
